@@ -22,7 +22,7 @@ void split(const std::string &buffer,const char sep_arg,const char sep_proc)
 	//подсчет количество процессов
          for(auto iter = buffer.begin(); iter != buffer.end(); iter++)
 	{
-		if(*iter == '|') cproc++;
+		if(*iter == sep_proc) cproc++;
 	}
 	cproc++;
 		#if DEBUG==split
@@ -39,19 +39,19 @@ void split(const std::string &buffer,const char sep_arg,const char sep_proc)
 	int proc = 0;
 	 for(auto iter = buffer.begin(); iter != buffer.end(); iter++)
 	{
-		if(*iter == '|')
+		if(*iter == sep_proc)
 		{
 			proc++;
 			iter++;
 			continue;
 		}
-		if(*iter == ' ') 
+		if(*iter == sep_arg) 
 		{
 			carg[proc]++;
 			sum_carg++;
 		} 
 	}
-	 if(*(buffer.end()-1) != ' ') 
+	 if(*(buffer.end()-1) != sep_arg) 
 	{
 		carg[proc]++;
 		sum_carg++;
@@ -78,12 +78,12 @@ void split(const std::string &buffer,const char sep_arg,const char sep_proc)
 	proc = 0;
 	for(auto iter = buffer.begin(); iter != buffer.end(); iter++)
 	{
-		if(*iter == '|')
+		if(*iter == sep_proc)
 		{
 			iter++;
 			continue;
 		}
-		if(*iter == ' ')
+		if(*iter == sep_arg)
 		{
 			proc++;
 			continue;
@@ -109,7 +109,7 @@ void split(const std::string &buffer,const char sep_arg,const char sep_proc)
 				std::cout << "выделено памяти под аргумент: " <<
 						 length_arg[arguments_index] << std::endl;
 			#endif
-			result[i][arg] = new char[length_arg[arguments_index]];
+			result[i][arg] = new char[length_arg[arguments_index]+1];
 			arguments_index++;
 		} 
 
@@ -120,12 +120,13 @@ void split(const std::string &buffer,const char sep_arg,const char sep_proc)
 	{
 		for(int j = 0; j < carg[i]; j++)
 		{
-			if(*iter == '|') iter = iter + 2; 
+			if(*iter == sep_arg) iter = iter + 2; 
 			for(int y = 0; y < length_arg[j]; y++)
 			{
 				result[i][j][y]	= *iter;
 				iter++;
 			}	
+			result[i][j][length_arg[j]] = '\0';
 			iter++;
 		}	
 	}
