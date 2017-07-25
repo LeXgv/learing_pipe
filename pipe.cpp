@@ -12,8 +12,10 @@ private:
 	unsigned int *length_arg = nullptr; // длина каждого аргумента
 public:
 
-void split(const std::string &buffer,const char sep_arg,const char sep_proc)
+void split(std::string &buffer,const char sep_arg,const char sep_proc)
 {
+	//добавляем в конец пробел, чтобы не было выхода за пределы буфера при разбиении
+	buffer.push_back(' ');
 	//char ***result = nullptr;
 	//unsigned int cproc = 0; //количество процессов
 	//unsigned int *carg = nullptr;// количество аргументов каждого процесса + сам процесс
@@ -69,11 +71,11 @@ void split(const std::string &buffer,const char sep_arg,const char sep_proc)
 	{
 		result[i] = new char*[carg[i]];
 	}
-	//подсчет длины каждого аргумента
+	//подсчет длины каждого аргумента + нулевой символ
 	length_arg = new unsigned int[sum_carg];
 	for(int i = 0; i < sum_carg; i++)
 	{
-		length_arg[i] = 0;	
+		length_arg[i] = 1;	
 	}
 	proc = 0;
 	for(auto iter = buffer.begin(); iter != buffer.end(); iter++)
@@ -116,24 +118,28 @@ void split(const std::string &buffer,const char sep_arg,const char sep_proc)
 	}
 	//заполнение созданного массива данными
 	auto iter = buffer.begin();
+	arguments_index = 0;
 	for(int i = 0; i < cproc; i++)
 	{
-		for(int j = 0; j < carg[i]; j++)
+		for (int k = 0; k < carg[i]; k++)
 		{
-			if(*iter == sep_arg) iter = iter + 2; 
-			for(int y = 0; y < length_arg[j]; y++)
+
+			if(*iter == '|') iter = iter + 2; 
+			for(int y = 0; y < length_arg[arguments_index]-1; y++)//length_arg[arguments_index] - 1  : длина аргумената в строке доп байт для нуль-символа
 			{
-				result[i][j][y]	= *iter;
+				result[i][k][y]	= *iter;
 				iter++;
 			}	
-			result[i][j][length_arg[j]] = '\0';
-			iter++;
+			result[i][k][length_arg[arguments_index] - 1] = '\0';
+			arguments_index++;
+			iter++;//ошибка
 		}	
 	}
 }
 
 	void print()
 	{
+		unsigned int argument_index = 0;
 		for(int i = 0; i < cproc; i++)
 		{	
 			std::cout << "--------" << std::endl;
@@ -143,12 +149,13 @@ void split(const std::string &buffer,const char sep_arg,const char sep_proc)
 				{
 					if(j == 0) std::cout << "Процесс: ";
 					else std::cout << "Аргумент: ";
-					for(int y = 0; y < length_arg[j]; y++)
+					for(int y = 0; y < length_arg[argument_index]; y++)
 					{
 							
 							std::cout << result[i][j][y];
 						
 					}	
+					argument_index++;
 					std::cout << std::endl;
 				}
 			}	
@@ -174,7 +181,7 @@ void split(const std::string &buffer,const char sep_arg,const char sep_proc)
 };
 int main(int argumentc, char **argumentv)
 {
-	setlocale(LC_ALL, " ");
+	setlocale(LC_ALL, "");
 	std::string argv;
 	#ifdef DEBUG
 	#warning "DEBUG_MODE"
@@ -189,5 +196,6 @@ int main(int argumentc, char **argumentv)
 	 std::cout << std::endl;
 	p.print();
 	std::cout << std::endl;
+	system("pause");
 	return 0;
 }
