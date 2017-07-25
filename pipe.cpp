@@ -178,24 +178,38 @@ void split(std::string &buffer,const char sep_arg,const char sep_proc)
 	}
 
 
+	int numproc()
+	{
+		return cproc;
+	}
+
+	char* get_proc(int id)
+	{
+		if (id < 0 || id >= cproc) return nullptr;
+		else
+		{
+			return result[id][0];
+		}
+	}
+
 };
 int main(int argumentc, char **argumentv)
 {
 	setlocale(LC_ALL, "");
 	std::string argv;
-	#ifdef DEBUG
+#ifdef DEBUG
 	#warning "DEBUG_MODE"
 
-	int argc = 1;
-	#else
+		int argc = 1;
+#else
 	int argc = 0;
-	#endif
-	 std::getline(std::cin, argv, '\n');
+#endif
+	std::getline(std::cin, argv, '\n');
 	Proc_Pipe p;
-	p.split(argv, ' ', '|'); 	
-	 std::cout << std::endl;
-	p.print();
-	std::cout << std::endl;
-	system("pause");
+	p.split(argv, ' ', '|');
+	for (int i = 0; i < p.numproc(); i++)
+	{
+		std::cout << p.get_proc(i) << std::endl;
+	}
 	return 0;
 }
