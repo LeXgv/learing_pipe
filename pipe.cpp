@@ -67,13 +67,15 @@ void split(const std::string &buffer,const char sep_arg,const char sep_proc)
 		#endif
 	for(int i = 0; i < cproc; i++)
 	{
-		result[i] = new char*[carg[i]];
+		result[i] = new char*[carg[i]+1];
+		result[carg[i]] = nullptr;
 	}
+
 	//подсчет длины каждого аргумента
 	length_arg = new unsigned int[sum_carg];
 	for(int i = 0; i < sum_carg; i++)
 	{
-		length_arg[i] = 0;	
+		length_arg[i] = 1;	
 	}
 	proc = 0;
 	for(auto iter = buffer.begin(); iter != buffer.end(); iter++)
@@ -121,11 +123,12 @@ void split(const std::string &buffer,const char sep_arg,const char sep_proc)
 		for(int j = 0; j < carg[i]; j++)
 		{
 			if(*iter == '|') iter = iter + 2; 
-			for(int y = 0; y < length_arg[j]; y++)
+			for(int y = 0; y < length_arg[j]-1; y++)
 			{
 				result[i][j][y]	= *iter;
 				iter++;
-			}	
+			}
+			result[i][j][length_arg[j]-1] = '\0';	
 			iter++;
 		}	
 	}
@@ -168,12 +171,25 @@ void split(const std::string &buffer,const char sep_arg,const char sep_proc)
 		if(carg != nullptr) delete[] carg;
 		if(length_arg != nullptr) delete[] length_arg;
 	}
+	
+	int numproc()
+	{	
+		return cproc;	
+	}
 
+	 char* get_proc(int id)
+	{
+		if(id < 0 || id >= cproc) return nullptr;
+		else
+		{
+			return result[id][0];
+		}	
+	}
 
 };
 int main(int argumentc, char **argumentv)
 {
-	setlocale(LC_ALL, " ");
+	setlocale(LC_ALL, "");
 	std::string argv;
 	#ifdef DEBUG
 	#warning "DEBUG_MODE"
@@ -185,8 +201,9 @@ int main(int argumentc, char **argumentv)
 	 std::getline(std::cin, argv, '\n');
 	Proc_Pipe p;
 	p.split(argv, ' ', '|'); 	
-	 std::cout << std::endl;
-	p.print();
-	std::cout << std::endl;
+	for(int i = 0; i < p.numproc(); i++)
+	{
+		std::cout << p.get_proc(i) << std::endl;	
+	} 
 	return 0;
 }
