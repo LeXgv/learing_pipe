@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #define CHR_SEP '|'
-
+#include <unistd.h>
 class  Proc_Pipe 
 {
 private:
@@ -32,6 +32,7 @@ void split(std::string &buffer,const char sep_arg,const char sep_proc)
 		#endif 
 	result = new char**[cproc];
 	carg = new unsigned int[cproc];
+	
 	for(int i = 0; i < cproc; i++)
 	{
 		carg[i] = 0;
@@ -183,15 +184,16 @@ void split(std::string &buffer,const char sep_arg,const char sep_proc)
 		return cproc;
 	}
 
-	char* get_proc(int id)
+	char** get_args(int id)
 	{
 		if (id < 0 || id >= cproc) return nullptr;
 		else
 		{
-			return result[id][0];
+			return result[id];
 		}
 	}
-
+	
+	
 };
 int main(int argumentc, char **argumentv)
 {
@@ -207,9 +209,8 @@ int main(int argumentc, char **argumentv)
 	std::getline(std::cin, argv, '\n');
 	Proc_Pipe p;
 	p.split(argv, ' ', '|');
-	for (int i = 0; i < p.numproc(); i++)
-	{
-		std::cout << p.get_proc(i) << std::endl;
-	}
+	 execvp(p.get_args(0)[0], p.get_args(0));
+	pause();
 	return 0;
 }
+
