@@ -1,8 +1,4 @@
-DB = 
-DEBUG = 
-ifdef DB
-	echo Режим дебага функции ${DB}
-	DEBUG = -D DEBUG=${DB}
-endif	
+DB = 0
+	
 ded: pipe.cpp
-	g++ -std=c++11 ${DEBUG} pipe.cpp -o pipe_debug_${DB}
+	g++ -std=c++11 -D DEBUG=${DB} pipe.cpp -o pipe_debug_${DB}

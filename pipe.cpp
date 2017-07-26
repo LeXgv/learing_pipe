@@ -1,8 +1,15 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <strings.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #define CHR_SEP '|'
 #include <unistd.h>
+#define DEBUG 'hello'
+static int NUM_CHILDREN_PROCESSES = 0;
+
 class  Proc_Pipe 
 {
 private:
@@ -27,7 +34,7 @@ void split(std::string &buffer,const char sep_arg,const char sep_proc)
 		if(*iter == sep_proc) cproc++;
 	}
 	cproc++;
-		#if DEBUG==split
+		#if DEBUG == split
 		std::cout << "Количество переданных процессов: " <<  cproc << std::endl;
 		#endif 
 	result = new char**[cproc];
@@ -133,7 +140,7 @@ void split(std::string &buffer,const char sep_arg,const char sep_proc)
 			}	
 			result[i][k][length_arg[arguments_index] - 1] = '\0';
 			arguments_index++;
-			iter++;//ошибка
+			iter++;
 		}	
 	}
 }
@@ -195,22 +202,43 @@ void split(std::string &buffer,const char sep_arg,const char sep_proc)
 	
 	
 };
+//обработчик сигнала смерти потомка
+void sigchld_handler(int signal)
+{
+	pid_t pidDead;
+	int resultWorking = 0;
+	pidDead = waitpid(-1, &resultWorking, 0);
+	if(-1 == pidDead) return;
+	else NUM_CHILDREN_PROCESSES--;
+	#if DEBUG == SIGHLD
+	std::cout << "Потомок закнончил свою работу\n";
+	#endif
+}
+
 int main(int argumentc, char **argumentv)
 {
 	setlocale(LC_ALL, "");
 	std::string argv;
-#ifdef DEBUG
-	#warning "DEBUG_MODE"
-
-		int argc = 1;
-#else
-	int argc = 0;
-#endif
 	std::getline(std::cin, argv, '\n');
 	Proc_Pipe p;
+	std::cout << DEBUG << std::endl;
 	p.split(argv, ' ', '|');
-	 execvp(p.get_args(0)[0], p.get_args(0));
-	pause();
+	// execvp(p.get_args(0)[0], p.get_args(0));
+	//установка обработчика сигнала смерти потомка (SIGCHLD)
+	sigset_t onemask = {0};
+	sigfillset(&onemask);
+ 	struct sigaction signal_handler = {0};
+	bzero(&signal_handler, sizeof(signal_handler));
+	signal_handler.sa_handler = sigchld_handler;
+	signal_handler.sa_mask = onemask;
+	sigaction(SIGCHLD, &signal_handler, nullptr);
+	#if DEBUG == SIGCHLD
+	if(!fork())
+	{
+		return 0;
+	}
+	#endif
+	//pause();
 	return 0;
 }
 
