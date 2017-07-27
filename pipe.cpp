@@ -5,6 +5,8 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #define CHR_SEP '|'
 #include <unistd.h>
 #define DEBUG 'hello'
@@ -210,9 +212,8 @@ void sigchld_handler(int signal)
 	pidDead = waitpid(-1, &resultWorking, 0);
 	if(-1 == pidDead) return;
 	else NUM_CHILDREN_PROCESSES--;
-	#if DEBUG == SIGHLD
+
 	std::cout << "Потомок закнончил свою работу\n";
-	#endif
 }
 
 int main(int argumentc, char **argumentv)
@@ -232,12 +233,17 @@ int main(int argumentc, char **argumentv)
 	signal_handler.sa_handler = sigchld_handler;
 	signal_handler.sa_mask = onemask;
 	sigaction(SIGCHLD, &signal_handler, nullptr);
-	#if DEBUG == SIGCHLD
-	if(!fork())
-	{
-		return 0;
-	}
-	#endif
+	int nump = p.numproc();
+	//подмена дескриптора консоли на дескриптор файла
+	int fd = open("result.txt", O_CREAT, 0);		
+	/*for(int i = 0; i < nump; i++)
+	{	//запуск процессов с аргументами
+		if(!fork())
+		{
+			execvp(p.get_args(i)[0], p.get_args(0));
+		}	
+	}*/
+	
 	//pause();
 	return 0;
 }
