@@ -10,7 +10,8 @@
 #include <stdio.h>
 #define CHR_SEP '|'
 #include <unistd.h>
-#define DEBUG 'hello'
+#define STR_STDIN 0
+#define STR_STDOUT 1
 static int NUM_CHILDREN_PROCESSES = 0;
 
 class  Proc_Pipe 
@@ -220,7 +221,7 @@ void sigchld_handler(int signal)
 int main(int argumentc, char **argumentv)
 {
 	setlocale(LC_ALL, "");
-	/*std::string argv;
+	std::string argv;
 	std::getline(std::cin, argv, '\n');
 	Proc_Pipe p;
 	std::cout << DEBUG << std::endl;
@@ -234,33 +235,49 @@ int main(int argumentc, char **argumentv)
 	signal_handler.sa_handler = sigchld_handler;
 	signal_handler.sa_mask = onemask;
 	sigaction(SIGCHLD, &signal_handler, nullptr);
-	int nump = p.numproc();*/
+	int nump = p.numproc();
 	//подмена дескриптора консоли на дескриптор файла
-	int fd = open("file.f", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+	//int fd = open("file.f", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 	
-	std::cout << "создан файл\n";
-	char bf[] = "Text";
+	//std::cout << "создан файл\n";
+	//char bf[] = "Text";
 	/*if(-1 == write(fd, &bf, sizeof(bf)))
 	{
 		std::cout << "Ошибка записи в файл \n";	
 	}*/
-	int err = dup2(fd, STDOUT_FILENO);
+	/*int err = dup2(fd, STDOUT_FILENO);
 	if(err == -1)
 	{
 		std::cout << "Ошибка\n";
 		return 0;
-	}
-	std::cout << "Используется std::cout\n";		
-	/*for(int i = 0; i < nump; i++)
+	}*/
+	//создание именнованого канала
+	int PipeWrite = 0, PipeRead = 0;
+	int STDIN = 0, STDOUT = 0;
+	/*if(-1 == mkfifo("pipe.fifo", 0777))
+	{
+		std::cout << "Ошибка создания именнованного канала (Файла)";
+		return -1;
+	}*/
+		PipeWrite = open("return.p", O_RDWR | O_CREAT, 0777);
+		//PipeRead = open("pipe.fifo", O_RDONLY | O_NONBLOCK);
+	//сохранение дескрипторова для последующего востановления
+	STDIN = dup(STR_STDIN);
+	STDOUT = dup(STR_STDOUT);
+	//перенаправление
+	//dup2(PipeRead, STR_STDIN);
+	dup2(PipeWrite, STR_STDOUT);		
+	for(int i = 0; i < nump; i++)
 	{	//запуск процессов с аргументами
 		if(!fork())
-		{
+		{	//тут код потомка
+			
 			execvp(p.get_args(i)[0], p.get_args(0));
 		}	
-	}*/
+	}
 	
-	//pause();
-close(fd);
+	pause();
+	close(PipeWrite);
 	return 0;
 }
 
