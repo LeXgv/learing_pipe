@@ -240,17 +240,17 @@ int main(int argumentc, char **argumentv)
 	
 	std::cout << "создан файл\n";
 	char bf[] = "Text";
-	if(-1 == write(fd, &bf, sizeof(bf)))
+	/*if(-1 == write(fd, &bf, sizeof(bf)))
 	{
 		std::cout << "Ошибка записи в файл \n";	
-	}
-	/*int err = dup2(fd, STDOUT_FILENO);
+	}*/
+	int err = dup2(fd, STDOUT_FILENO);
 	if(err == -1)
 	{
 		std::cout << "Ошибка\n";
 		return 0;
 	}
-	std::cout << "Используется std::cout\n";		*/
+	std::cout << "Используется std::cout\n";		
 	/*for(int i = 0; i < nump; i++)
 	{	//запуск процессов с аргументами
 		if(!fork())
