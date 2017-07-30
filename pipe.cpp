@@ -7,6 +7,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <stdio.h>
 #define CHR_SEP '|'
 #include <unistd.h>
 #define DEBUG 'hello'
@@ -219,7 +220,7 @@ void sigchld_handler(int signal)
 int main(int argumentc, char **argumentv)
 {
 	setlocale(LC_ALL, "");
-	std::string argv;
+	/*std::string argv;
 	std::getline(std::cin, argv, '\n');
 	Proc_Pipe p;
 	std::cout << DEBUG << std::endl;
@@ -233,9 +234,23 @@ int main(int argumentc, char **argumentv)
 	signal_handler.sa_handler = sigchld_handler;
 	signal_handler.sa_mask = onemask;
 	sigaction(SIGCHLD, &signal_handler, nullptr);
-	int nump = p.numproc();
+	int nump = p.numproc();*/
 	//подмена дескриптора консоли на дескриптор файла
-	int fd = open("result.txt", O_CREAT, 0);		
+	int fd = open("file.f", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+	
+	std::cout << "создан файл\n";
+	char bf[] = "Text";
+	if(-1 == write(fd, &bf, sizeof(bf)))
+	{
+		std::cout << "Ошибка записи в файл \n";	
+	}
+	/*int err = dup2(fd, STDOUT_FILENO);
+	if(err == -1)
+	{
+		std::cout << "Ошибка\n";
+		return 0;
+	}
+	std::cout << "Используется std::cout\n";		*/
 	/*for(int i = 0; i < nump; i++)
 	{	//запуск процессов с аргументами
 		if(!fork())
@@ -245,6 +260,7 @@ int main(int argumentc, char **argumentv)
 	}*/
 	
 	//pause();
+close(fd);
 	return 0;
 }
 
