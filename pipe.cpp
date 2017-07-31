@@ -215,7 +215,7 @@ void sigchld_handler(int signal)
 	if(-1 == pidDead) return;
 	else NUM_CHILDREN_PROCESSES--;
 
-	std::cout << "Потомок закнончил свою работу\n";
+	//std::cout << "Потомок закнончил свою работу\n";
 }
 
 int main(int argumentc, char **argumentv)
@@ -224,7 +224,7 @@ int main(int argumentc, char **argumentv)
 	std::string argv;
 	std::getline(std::cin, argv, '\n');
 	Proc_Pipe p;
-	std::cout << DEBUG << std::endl;
+//	std::cout << DEBUG << std::endl;
 	p.split(argv, ' ', '|');
 	// execvp(p.get_args(0)[0], p.get_args(0));
 	//установка обработчика сигнала смерти потомка (SIGCHLD)
@@ -254,30 +254,43 @@ int main(int argumentc, char **argumentv)
 	//создание именнованого канала
 	int PipeWrite = 0, PipeRead = 0;
 	int STDIN = 0, STDOUT = 0;
-	/*if(-1 == mkfifo("pipe.fifo", 0777))
+	/*if((-1 == mkfifo("pipe.fifo", 0777)) && (errno != EEXIST))
 	{
 		std::cout << "Ошибка создания именнованного канала (Файла)";
 		return -1;
 	}*/
-		PipeWrite = open("return.p", O_RDWR | O_CREAT, 0777);
-		//PipeRead = open("pipe.fifo", O_RDONLY | O_NONBLOCK);
+		PipeWrite = open("p", O_WRONLY | O_CREAT | O_TRUNC, 0777);
+		PipeRead = open("p", O_RDONLY);
 	//сохранение дескрипторова для последующего востановления
 	STDIN = dup(STR_STDIN);
 	STDOUT = dup(STR_STDOUT);
 	//перенаправление
-	//dup2(PipeRead, STR_STDIN);
+	dup2(PipeRead, STR_STDIN);
 	dup2(PipeWrite, STR_STDOUT);		
+	//установка отлова только сигнала SIGCHLD
+	sigset_t lfs = {0};
+	sigfillset(&lfs);
+	sigdelset(&lfs, SIGCHLD);
 	for(int i = 0; i < nump; i++)
 	{	//запуск процессов с аргументами
 		if(!fork())
 		{	//тут код потомка
+			//если процесс последний то его вывод перенаправить
+			//обратно в консоль
+			if(i == (nump - 1))
+			{	
+				//TODO: реализовать подмену дескриптора на результирущий файл 
+				dup2(, STR_STDOUT);
+			}
 			
 			execvp(p.get_args(i)[0], p.get_args(0));
 		}	
+		sigsuspend(&lfs);
+		//pause();
 	}
 	
-	pause();
 	close(PipeWrite);
+	close(PipeRead);
 	return 0;
 }
 
