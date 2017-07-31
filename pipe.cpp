@@ -206,6 +206,7 @@ void split(std::string &buffer,const char sep_arg,const char sep_proc)
 	
 	
 };
+
 //обработчик сигнала смерти потомка
 void sigchld_handler(int signal)
 {
@@ -275,12 +276,34 @@ int main(int argumentc, char **argumentv)
 	{	//запуск процессов с аргументами
 		if(!fork())
 		{	//тут код потомка
+			
 			//если процесс последний то его вывод перенаправить
 			//обратно в консоль
 			if(i == (nump - 1))
 			{	
 				//TODO: реализовать подмену дескриптора на результирущий файл 
-				dup2(, STR_STDOUT);
+				int file_result = open("result.out", O_CREAT | O_TRUNC | O_WRONLY, 0777);
+				if(file_result == -1)
+				{
+					dup2(STDOUT,STR_STDOUT);
+					std::cout << "Ошибка открытия результирующего файла\n";
+					return -2;
+				}
+				dup2(file_result, STR_STDOUT);
+			}
+			else
+			{
+				PipeWrite = open("p", O_WRONLY | O_CREAT | O_TRUNC, 0777);
+				PipeRead = open("p", O_RDONLY);
+				if(PipeWrite == -1 || PipeRead == -1)
+				{
+					dup2(STDOUT, STR_STDOUT);
+					std::cout << "Ошибка открытия промежуточного файла\n";
+					return -3;
+
+				}
+				dup2(PipeWrite, STR_STDOUT);
+				dup2(PipeRead, STR_STDIN);
 			}
 			
 			execvp(p.get_args(i)[0], p.get_args(0));
